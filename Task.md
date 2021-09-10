@@ -10,6 +10,8 @@ friends
 posts
 comments
 posts_likes
+
+
 Uzduotys
 1 Registruotu vartotoju sarasas, isrikiuotas nuo naujausio link seniausio. Reikia nurodyti varda, post'u kieki, komentaru kieki ir like'u kieki
 
