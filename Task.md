@@ -73,3 +73,11 @@ pvz.:
 Comments with search term "nice":
 1. "This is nice!" (2021-09-09 20:18:45);
 2. "Nice one!" (2021-09-09 20:18:45);
+
+7 Isspausdinti naujausia vartotojo post'a. Visa tai turi buti funkcijos pavidale, kuri gauna vieninteli parametra - vartotojo id. Jei vartotojas neturi parases nei vieno post'o, grazinti atitinkama pranesima.
+
+pvz.:
+
+Latest post from Vardenis:
+"Post text" (2021-09-09 20:18:45).
+Seems like Vardenis hasn't posted yet.

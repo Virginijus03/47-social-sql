@@ -17,6 +17,13 @@ app.init = async () => {
         return str[0].toUpperCase() + str.slice(1);
     }
 
+    function formatDate(date) {
+        const d = new Date(date);
+        const dformat = [d.getFullYear(), d.getMonth() + 1, d.getDate()].join('-') + ' ' +
+            [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
+        return dformat;
+    }
+
     //1 Registruotu vartotoju sarasas, isrikiuotas nuo naujausio link 
     //seniausio. Reikia nurodyti varda, post'u kieki, komentaru kieki ir like'u kieki
     sql = 'SELECT `users`.`id`, `firstname`, \
@@ -50,7 +57,7 @@ app.init = async () => {
     [rows] = await connection.execute(sql);
     console.log(`Ona's feed:`);
     for (let { firstname, text, date } of rows) {
-        console.log(`--${upperName(firstname)} wrote a post "${text}"(${date})`);
+        console.log(`--${upperName(firstname)} wrote a post "${text}" (${formatDate(date)})`);
     }
     console.log('          ');
 
@@ -71,14 +78,14 @@ app.init = async () => {
     [rows] = await connection.execute(sql);
     let index = 0;
     for (const item of rows) {
-        const d = new Date(item.follow_date);
-        const dformat = [d.getFullYear(), d.getMonth() + 1, d.getDate()].join('-') + ' ' +
-            [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
-        console.log(`${++index}. ${upperName(item.me)} is following ${upperName(item.you)} (since ${dformat});`);
+        // const d = new Date(item.follow_date);
+        // const dformat = [d.getFullYear(), d.getMonth() + 1, d.getDate()].join('-') + ' ' +
+        //     [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
+        console.log(`${++index}. ${upperName(item.me)} is following ${upperName(item.you)} (since ${formatDate(item.follow_date)});`);
     }
     console.log('          ');
 
-    //5Koks yra like'u naudojamumas. Isrikiuoti nuo labiausiai naudojamo_
+    //5Koks yra like'u naudojamumas. Isrikiuoti nuo labiausiai naudojamo.
     sql = 'SELECT `like_options`.`id`, `like_options`.`text`,\
                     `posts_likes`.`like_option_id`, \
                 COUNT(`posts_likes`.`like_option_id`) as panaudota\
@@ -100,10 +107,52 @@ app.init = async () => {
     //Jei nieko nerasta, tai parodyti atitinkama pranesima.
     //Visa tai turi buti funkcijos pavidale, 
     //kuri gauna vieninteli parametra - paieskos fraze.
-    sql = 'SELECT * ``.``, ``'
-    [rows] = await connection.execute(sql);
-    console.log(`Comments with search term "nice":`);
+    async function searchPost(str) {
 
+        sql = 'SELECT * FROM `comments` WHERE `text` LIKE "%' + str + '%"';
+        [rows] = await connection.execute(sql);
+
+        if (rows.length === 0) { //tikrinam ar array tuscias
+            console.error(`ERROR:Tokio komentaro nera`);
+        } else {
+            console.log(`Comments with search term "${str}":`);
+            count = 0;
+            for (let { text, date } of rows) {
+                console.log(`${++count}. "${text}" (${formatDate(date)});`);
+            }
+        }
+    };
+    await searchPost('nice');
+    await searchPost('lol');
+    console.log('        ');
+
+    //7 Isspausdinti naujausia vartotojo post'a. 
+    //Visa tai turi buti funkcijos pavidale, 
+    //kuri gauna vieninteli parametra - vartotojo id. 
+    //Jei vartotojas neturi parases nei vieno post'o, 
+    //grazinti atitinkama pranesima.
+    async function postFinder(userID) {
+        sql = 'SELECT posts.text as text,\
+                      posts.date as time,\
+                      posts.user_id,\
+                     (SELECT users.firstname\
+                      FROM users\
+                      WHERE posts.user_id = users.id ) as name\
+                FROM posts\
+                WHERE user_id = '+ userID + '\
+                ORDER BY time DESC';
+        [rows] = await connection.execute(sql);
+
+        if (rows.length === 0) {
+            console.error(`Seems like user hasn't posted yet.`);
+        }
+        else {
+            console.log(`Latest post from ${rows[0].name}:`);
+            console.log(`'${rows[0].text}' ${formatDate(rows[0].time)}.`);
+        }
+    }
+    await postFinder(1);
+    await postFinder(4);
 }
 
 app.init();
